@@ -6,7 +6,7 @@ La documentazione è in **italiano**
 #Uso:
 
 ##Importazione
-```C
+```C++
   extern "C++" {
     #include "Timer2.h" //se si trova nella directory del progetto
     #include <Timer2.h> //se si trova nella directory delle librerie di Arduino
