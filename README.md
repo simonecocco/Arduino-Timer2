@@ -1,125 +1,107 @@
 # Arduino-Timer2
 ######Libreria che semplifica la configurazione del Timer2 nei dispositivi ATMEGA
 
-La documentazione è in **italiano**
+### La documentazione è in italiano
 
 # Uso:
 
-## Importazione
-```C
-  extern "C++" {
-    #include "Timer2.h" //se si trova nella directory del progetto
-    #include <Timer2.h> //se si trova nella directory delle librerie di Arduino
-  }
+### Importazione
+###### Dopo aver installato la libreria in zip è possibile utilizzarla importandola
+* Sintassi
+```c
+#include <Timer2.h>
 ```
+***
 
-## Dichiarazione
+### Provenienza del clock
+###### Il segnale di clock può provenire dall'esterno o dall'interno
+* Sintassi
+```c
+void sourceclock(char source);
+```
+Costante|Valore|Descrizione
+---|:---:|---
+CLOCK_INTERNAL|0|Utilizza il clock predefinito
+CLOCK_EXTERNAL|1|Utilizza un segnale esterno
+* Codice
+```c
+sourceclock(CLOCK_INTERNAL);
+```
+***
+
+### Divisione del prescaler
+###### Indica quanto deve dividere la frequenza
+* Sintassi
+```c
+void prescalermode(char divisore);
+```
+Costante|Valore|Fattore di divisione
+---|:---:|:---:
+PRES_NULL|0|Nulla
+PRES_1|1|x1
+PRES_8|2|x8
+PRES_32|3|x32
+PRES_64|4|x64
+PRES_128|5|x128
+PRES_256|6|x256
+PRES_1024|7|x1024
+* Codice
+```c
+prescalermode(PRES_128);
+```
+***
+
+### Modalità di funzionamento
+* Sintassi
+```c
+void setmode(char mode,unsigned char value);
+void setmode(char mode);
+```
+Costante|Valore|Codice|Descrizione
+---|:---:|---|---
+MODE_NORMAL|0|`setmode(MODE_NORMAL)`|Il contatore si azzera una volta arrivato a 255
+MODE_PWM1|1|`setmode(MODE_PWM1)`|
+MODE_CTC|2|`setmode(MODE_CTC,x)`|Quando il valore del contatore raggiunge il valore di x, questo si azzera
+MODE_FAST_PWM1|3|`setmode(MODE_FAST_PWM1)`|
+MODE_PWM2|4|`setmode(MODE_PWM2,x)`|
+MODE_FAST_PWM2|5|`setmode(MODE_FAST_PWM2,x)`|
+***
+
+### Output
+###### Comportamento dei pin collegati all'interrupt
+* Sintassi
+```c
+void setoutput(char mode);
+```
+Costante|Valore|Descrizione
+---|:---:|---
+OUT_NORMAL|0|Non connesso al pin11
+OUT_TOGGLE|1|L'uscita cambia stato ogni volta
+OUT_CLEAR|2|L'uscita va a 0 quando raggiunge il massimo
+OUT_SET|3|L'uscita va a 1 quando raggiunge il massimo
+* Codice
+```c
+setoutput(OUT_NORMAL);
+```
+***
+
+### Routine dell'interrupt
+###### Per attivare la routine che verrà chiamata ogni volta che il contatore raggiunge il massimo
+* Sintassi
+```c
+void useroutine(char use);
+```
+* Codice `main.ino`
 ```C++
-  #define True 1
-  #define False 0
-  Timer2 timer2;
+#include <Timer2.h>
+
+void setup(){
+    useroutine(True);
+}
 ```
-
-## Abilita gli interrupts
-`.enableInterrupts(byte) -> void` abilita/disabilita gli interrupts
-
-```C++
-  Timer2 t2;
-  t2.enableInterrupts(True);
+`timerroutine.ino`
+```c
+ISR(TIMER2_COMPA_vect){
+    //some code
+}
 ```
-
-## Provenienza del clock
-`.hasExternalClock(byte) -> void` imposta la sorgente del clock: 1 per esterno e 0 per interno
-
-```C++
-  Timer2 t2;
-  t2.hasExternalClock(False); //usa l'oscillatore di Arduino (16 o 8MHz)
-```
-
-la funzione va a modificare un bit del registro `ASSR` in particolare `AS2`:
-
-|  AS2  | Descrizione                          |
-| :---: | ------------------------------------ |
-|   0   | utilizza il clock interno di arduino |
-|   1   | utilizza un clock esterno            |
-
-## Divisione del prescaler
-
-`.setPrescaler(byte) -> void` imposta il criterio di divisione del clock
-
-```C++
-  Timer2 t2;
-  t2.setPrescaler(PRES_NULL);
-```
-
-la funzione va a modificare i bit sul registro `TCCR2B`:
-
-|  CS22  |  CS21  |  CS20  | Costante  | Descrizione               |
-| :----: | :----: | :----: | :-------: | ------------------------- |
-|    0   |    0   |    0   | PRES_NULL | Nessun clock              |
-|    0   |    0   |    1   | PRES_1    | Frequenza originale       |
-|    0   |    1   |    0   | PRES_8    | Frequenza divisa per 8    |
-|    0   |    1   |    1   | PRES_32   | Frequenza divisa per 32   |
-|    1   |    0   |    0   | PRES_64   | Frequenza divisa per 64   |
-|    1   |    0   |    1   | PRES_128  | Frequenza divisa per 128  |
-|    1   |    1   |    0   | PRES_256  | Frequenza divisa per 256  |
-|    1   |    1   |    1   | PRES_1024 | Frequenza divisa per 1024 |
-
-## Modalità di funzionamento
-
-`.setMode(byte) -> void` e `.setMode(byte,byte) -> void` sono due funzioni per definire la modalità di conteggio del timer2 e conseguentemente di azzerarlo
-
-```C++
-  Timer2 t2;
-  t2.setMode(MODE_CTC,124); //chiama un interrupt ogni 1ms
-```
-
-la funzione modifica `TCCR2A` e `TCCR2B` per impostare la modalità e `OCR2A` per il valore da raggiungere per riazzerarsi:
-
-| WGM22 | WGM21 | WGM20 |     Sintassi e costanti     |Descrizione|
-| :---: | :---: | :---: | :-------------------------: |---|
-|   0   |   0   |   0   | setMode(MODE_NORMAL)        | Il contatore si azzera a 0xFF (255) |
-|   0   |   0   |   1   | setMode(MODE_PWM1)          |                                     |
-|   0   |   1   |   0   | setMode(MODE_CTC,val)       | Quando il contatore raggiunge il valore contenuto in val si azzera|
-|   0   |   1   |   1   | setMode(MODE_FAST_PWM1)     |                                     |
-|   1   |   0   |   0   | x                           |                                     |
-|   1   |   0   |   1   | setMode(MODE_PWM2,val)      |                                     |
-|   1   |   1   |   0   | x                           |                                     |
-|   1   |   1   |   1   | setMode(MODE_FAST_PWM2,val) |                                     |
-
-## Output
-
-`.setOutput(byte) -> void` imposta se il clock deve usare l'uscita 11
-
-```C++
-  Timer2 t2;
-  pinMode(11,OUTPUT);
-  t2.setOutput(OUT_NORMAL);
-```
-
-la funzione va a modificare `COM2A1` e `COM2A0` dentro `TCCR2A`:
-
-| COM2A1 | COM2A0 |  Costanti  | Descrizione                                         |
-| :----: | :----: | :--------: | --------------------------------------------------- |
-|   0    |    0   | OUT_NORMAL | Non connesso al pin11                               |
-|   0    |    1   | OUT_TOGGLE | L'uscita cambia stato al raggiungimento del massimo |
-|   1    |    0   | OUT_CLEAR  | L'uscita va a 0 quando raggiunge il massimo         |
-|   1    |    1   | OUT_SET    | L'uscita va a 1 quando raggiunge il massimo         |
-
-## Routine dell'interrupt
-
-`.useRoutine(byte) -> void` s/maschera la routine
-
-```C++
-  //test.ino
-  
-  Timer2 t2;
-  t2.useRoutine(True);
-  
-  //func.ino
-  ISR(TIMER2_COMPA_vect){
-    /* todo */
-  }
-```
-
-la funzione presente nel file func.ino viene eseguita ogni volta che il timer raggiunge il suo massimo e si riazzera

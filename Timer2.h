@@ -3,7 +3,6 @@
  */
 
 #include <avr/io.h>
-#include <Arduino.h>
 
 //per impostare la modalita'
 #define MODE_NORMAL    0
@@ -29,51 +28,45 @@
 #define OUT_CLEAR  2
 #define OUT_SET    3
 
+#define CLOCK_INTERNAL 0
+#define CLOCK_EXTERNAL 1
+
+#ifndef True
+    #define True 1
+#endif
+#ifndef False
+    #define False 0
+#endif
+
 //Timer2.h
 #ifndef TIMER_2
 #define TIMER_2
 
-class Timer2 {
-  public:
-    Timer2();
+/**
+ * mi dice se il clock è interno (0)
+ * o esterno (1)
+ */
+void sourceclock(char source);
 
-    /**
-     * disabilita o abilita gli interrupts
-     */
-    void enableInterrupts(byte enable);
-    /**
-     * mi dice se il clock è interno (0)
-     * o esterno (1)
-     */
-    void hasExternalClock(byte external);
+/**
+ * imposta di quanto deve scalare la frequenza
+ */
+void prescalermode(char divisore);
 
-    /**
-     * imposta di quanto deve scalare la frequenza
-     */
-    void setPrescaler(byte divisore);
+/**
+ * imposta la modalita' di funzionamento
+ */
+void setmode(char mode,unsigned char value);
+void setmode(char mode);
 
-    /**
-     * imposta la modalita' di funzionamento
-     */
-    void setMode(byte mode,byte maxVal);
+/**
+ * imposta la modalita' di output
+ */
+void setoutput(char mode);
 
-    /**
-     * imposta la modalita' di funzionamento, senza il valore massimo
-     */
-    void setMode(byte mode);
-
-    /**
-     * imposta la modalita' di output
-     */
-    void setOutput(byte mode);
-
-    /**
-     * usa la routine di interrupt
-     * ISR(TIMER2_COMPA_vect)
-     */
-    void useRoutine(byte use);
-  private:
-  protected:
-};
-
+/**
+ * usa la routine di interrupt
+ * ISR(TIMER2_COMPA_vect)
+ */
+void useroutine(char use);
 #endif
