@@ -5,7 +5,7 @@
 #include "Timer2.h"
 
 void sourceclock(char source){
-    if(external) ASSR|=(1<<AS2);
+    if(source) ASSR|=(1<<AS2);
     else ASSR&= ~(1<<AS2);
 }
 
@@ -46,7 +46,7 @@ void prescalermode(char divisore){
 }
 
 void setmode(char mode,unsigned char value){
-    if(maxVal<0){
+    if(value<0){
         setmode(MODE_NORMAL);
         return;
     }
@@ -55,18 +55,18 @@ void setmode(char mode,unsigned char value){
             TCCR2A&= ~(1<<WGM20);
             TCCR2A|= (1<<WGM21);
             TCCR2B&= ~(1<<WGM22);
-            OCR2A=maxVal;
+            OCR2A=value;
             break;
         case MODE_PWM2: //-> 1 0 1
             TCCR2A|= (1<<WGM20);
             TCCR2A&= ~(1<<WGM21);
             TCCR2B|= (1<<WGM22);
-            OCR2A=maxVal;
+            OCR2A=value;
             break;
         case MODE_FAST_PWM2: //-> 1 1 1
             TCCR2A|= (1<<WGM20)|(1<<WGM21);
             TCCR2B|= (1<<WGM22);
-            OCR2A=maxVal;
+            OCR2A=value;
             break;
         default: setmode(MODE_NORMAL);
     }
