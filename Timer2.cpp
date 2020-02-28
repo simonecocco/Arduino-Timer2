@@ -114,6 +114,6 @@ void setoutput(char mode){
 void useroutine(char use){
     if(use){
         TIMSK2|= (1<<OCIE2A);
-        SREG|=0B1000000;
+        SREG|=0B10000000;
     }else TIMSK2&= ~(1<<OCIE2A);
 }
